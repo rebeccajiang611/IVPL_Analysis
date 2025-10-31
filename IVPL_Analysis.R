@@ -401,8 +401,8 @@ library(VennDiagram)
 
 venn.plot <- venn.diagram(
   x = list(
-    IVPLInt = IVPL$`Gene Symbol`,
-    sortedInt = sorted$`Gene Symbol`
+    IVPLTreg = IVPL$`Gene Symbol`,
+    sortedTreg = sorted$`Gene Symbol`
   ),
   filename = NULL,
   fill = c("lightpink","skyblue"),
@@ -418,12 +418,12 @@ grid.draw(venn.plot)
 intersect_IVPL3828 <- IVPL[IVPL$`Gene Symbol` %in% overlap, ]
 intersect_sorted3828 <- sorted[sorted$`Gene Symbol` %in% overlap, ]
 
-IVPL3828 <- intersect_IVPL3828[, c("Gene Symbol","Int1","Int2")]
+IVPL3828 <- intersect_IVPL3828[, c("Gene Symbol","Treg1","Treg2")]
 sorted3828 <-intersect_sorted3828[, c("Gene Symbol","sorted1","sorted2")]
 all3828 <- merge(IVPL3828, sorted3828, by = "Gene Symbol")
 #all1875[is.na(all1875)] <- 0
 ##归一化处理
-cols <- c("Int1","Int2", "sorted1","sorted2")
+cols <- c("Treg1","Treg2", "sorted1","sorted2")
 all3828[cols] <- sweep(all3828[cols], 2, colSums(all3828[cols], na.rm = TRUE), FUN = "/")
 
 df<-all3828
@@ -456,20 +456,20 @@ pheatmap(sample_cor,
          display_numbers = TRUE,
          main = "Sample-wise Pearson Correlation of Protein Expression")
 
-expr_mat$Int_avg <- rowMeans(expr_mat[, c("Int1", "Int2")], na.rm = TRUE)
+expr_mat$Treg_avg <- rowMeans(expr_mat[, c("Treg1", "Treg2")], na.rm = TRUE)
 expr_mat$sorted_avg <- rowMeans(expr_mat[, c("sorted1", "sorted2")], na.rm = TRUE)
-expr_mat$log2FC <- log2(expr_mat$Int_avg ) - log2(expr_mat$sorted_avg)  
+expr_mat$log2FC <- log2(expr_mat$Treg_avg ) - log2(expr_mat$sorted_avg)  
 
-cor(log2(expr_mat$sorted_avg), log2(expr_mat$Int_avg), method = "pearson")
-cor_result <- cor.test(log2(expr_mat$sorted_avg), log2(expr_mat$Int_avg), method = "pearson")
+cor(log2(expr_mat$sorted_avg), log2(expr_mat$Treg_avg), method = "pearson")
+cor_result <- cor.test(log2(expr_mat$sorted_avg), log2(expr_mat$Treg_avg), method = "pearson")
 r_val <- round(cor_result$estimate, 3)  
 p_val <- signif(cor_result$p.value, 3)  
-plot(log2(expr_mat$sorted_avg), log2(expr_mat$Int_avg),
-     xlab = "log2(Sorted Intestine Avg)", ylab = "log2(IVPL Intestine Avg)",
+plot(log2(expr_mat$sorted_avg), log2(expr_mat$Treg_avg),
+     xlab = "log2(Sorted Treg Avg)", ylab = "log2(IVPL Treg Avg)",
      main = "Correlation of Expression Trends")
-abline(lm(log2(Int_avg) ~ log2(sorted_avg), data = expr_mat), col = "red")
+abline(lm(log2(Treg_avg) ~ log2(sorted_avg), data = expr_mat), col = "red")
 text(x = max(log2(expr_mat$sorted_avg)) * 0.5,
-     y = max(log2(expr_mat$Int_avg)) * 0.95,
+     y = max(log2(expr_mat$Treg_avg)) * 0.95,
      labels = paste0("r = ", r_val, ", p ", format.pval(p_val, eps = 0.0001, digits = 2)),
      cex = 1.2)
 dev.new()
@@ -480,24 +480,24 @@ library(viridis)
 library(ggpubr)
 # 计算log2值
 expr_mat$log_sorted <- log2(expr_mat$sorted_avg)
-expr_mat$log_Int <- log2(expr_mat$Int_avg)
+expr_mat$log_Treg <- log2(expr_mat$Treg_avg)
 
-ggplot(expr_mat, aes(x = log_sorted, y = log_Int)) +
+ggplot(expr_mat, aes(x = log_sorted, y = log_Treg)) +
   geom_point(aes(color = log_sorted), alpha = 0.6, size = 1.5) +
   scale_color_viridis(option = "plasma", direction = -1) +
   geom_smooth(method = "lm", color = "firebrick", se = FALSE, size = 1) +
   stat_cor(
     method = "pearson",
     label.x = min(expr_mat$log_sorted) + 0.5,
-    label.y = max(expr_mat$log_Int) - 0.5,
+    label.y = max(expr_mat$log_Treg) - 0.5,
     size = 5,
     color = "black",
     parse = FALSE
   ) +
   labs(
-    title = "Correlation of IVPL and Sorted Intestine",
-    x = "log2(Sorted Intestine Average Abundance)",
-    y = "log2(IVPL Intestine Average Abundance)",
+    title = "Correlation of IVPL and Sorted Treg",
+    x = "log2(Sorted Treg Average Abundance)",
+    y = "log2(IVPL Treg Average Abundance)",
     color = "log2(Abundance)"
   ) +
   theme_minimal(base_size = 14) +
